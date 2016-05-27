@@ -62,9 +62,10 @@ type AxisMouse struct {
 
 // NewAxisMouse creates a new Mouse Axis in either direction AxisMouseVert or AxisMouseHori.
 func NewAxisMouse(d AxisMouseDirection) *AxisMouse {
-	old := Input.Mouse.Y
+	x, y := Input.MousePosition()
+	old := y
 	if d == AxisMouseHori {
-		old = Input.Mouse.X
+		old = x
 	}
 
 	return &AxisMouse{
@@ -75,14 +76,16 @@ func NewAxisMouse(d AxisMouseDirection) *AxisMouse {
 
 // Value returns the delta of a mouse movement.
 func (am *AxisMouse) Value() float32 {
+	x, y := Input.MousePosition()
+
 	var diff float32
 
 	if am.direction == AxisMouseHori {
-		diff = Input.Mouse.X - am.old
-		am.old = Input.Mouse.X
+		diff = x - am.old
+		am.old = x
 	} else {
-		diff = Input.Mouse.Y - am.old
-		am.old = Input.Mouse.Y
+		diff = y - am.old
+		am.old = y
 	}
 
 	return diff

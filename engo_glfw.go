@@ -119,29 +119,21 @@ func CreateWindow(title string, width, height int, fullscreen bool, msaa int) {
 	})
 
 	window.SetCursorPosCallback(func(window *glfw.Window, x, y float64) {
-		Input.Mouse.X, Input.Mouse.Y = float32(x), float32(y)
-		Input.Mouse.Action = Move
+		Input.mouse.SetPosition(float32(x), float32(y))
 	})
 
 	window.SetMouseButtonCallback(func(window *glfw.Window, b glfw.MouseButton, a glfw.Action, m glfw.ModifierKey) {
-		x, y := window.GetCursorPos()
-		Input.Mouse.X, Input.Mouse.Y = float32(x), float32(y)
-
 		// this is only valid because we use an internal structure that is
 		// 100% compatible with glfw3.h
-		Input.Mouse.Button = MouseButton(b)
-		Input.Mouse.Modifer = Modifier(m)
-
 		if a == glfw.Press {
-			Input.Mouse.Action = Press
+			Input.mouse.SetButton(MouseButton(b), ModifierKey(m), true)
 		} else {
-			Input.Mouse.Action = Release
+			Input.mouse.SetButton(MouseButton(b), ModifierKey(m), false)
 		}
 	})
 
 	window.SetScrollCallback(func(window *glfw.Window, xoff, yoff float64) {
-		Input.Mouse.ScrollX = float32(xoff)
-		Input.Mouse.ScrollY = float32(yoff)
+		Input.mouse.SetScroll(float32(xoff), float32(yoff))
 	})
 
 	window.SetKeyCallback(func(window *glfw.Window, k glfw.Key, s int, a glfw.Action, m glfw.ModifierKey) {
@@ -208,8 +200,8 @@ func RunIteration() {
 	// Lastly, forget keypresses and swap buffers
 	if !opts.HeadlessMode {
 		// reset values to avoid catching the same "signal" twice
-		Input.Mouse.ScrollX, Input.Mouse.ScrollY = 0, 0
-		Input.Mouse.Action = Neutral
+		Input.mouse.SetScroll(0, 0)
+		//Input.Mouse.Action = Neutral
 
 		window.SwapBuffers()
 	}

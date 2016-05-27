@@ -2,17 +2,17 @@ package engo
 
 type Action int
 type Key int
-type Modifier int
+type ModifierKey int
 
 var (
 	Move    = Action(0)
 	Press   = Action(1)
 	Release = Action(2)
 	Neutral = Action(99)
-	Shift   = Modifier(0x0001)
-	Control = Modifier(0x0002)
-	Alt     = Modifier(0x0004)
-	Super   = Modifier(0x0008)
+	Shift   = ModifierKey(0x0001)
+	Control = ModifierKey(0x0002)
+	Alt     = ModifierKey(0x0004)
+	Super   = ModifierKey(0x0008)
 )
 
 // MouseButton corresponds to a mouse button.

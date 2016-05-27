@@ -14,7 +14,8 @@ func NewInputManager() *InputManager {
 	return &InputManager{
 		axes:    make(map[string]Axis),
 		buttons: make(map[string]Button),
-		keys:    NewKeyManager(),
+		keys:    &KeyManager{mapper: make(map[Key]KeyState)},
+		mouse:   &MouseManager{mapper: make(map[MouseButton]KeyState)},
 	}
 }
 
@@ -22,15 +23,15 @@ func NewInputManager() *InputManager {
 type InputManager struct {
 	// Mouse is InputManager's reference to the mouse. It is recommended to use the
 	// Axis and Button system if at all possible.
-	Mouse Mouse
-
 	axes    map[string]Axis
 	buttons map[string]Button
 	keys    *KeyManager
+	mouse   *MouseManager
 }
 
 func (im *InputManager) update() {
 	im.keys.update()
+	im.mouse.update()
 }
 
 // RegisterAxis registers a new axis which can be used to retrieve inputs which are spectrums.
@@ -59,10 +60,22 @@ func (im *InputManager) Button(name string) Button {
 	return im.buttons[name]
 }
 
-type Mouse struct {
-	X, Y             float32
-	ScrollX, ScrollY float32
-	Action           Action
-	Button           MouseButton
-	Modifer          Modifier
+func (im *InputManager) Key(key Key) KeyState {
+	return im.keys.Get(key)
+}
+
+func (im *InputManager) MouseButton(mb MouseButton) KeyState {
+	return im.mouse.Button(mb)
+}
+
+func (im *InputManager) MouseModifierKey(mod ModifierKey) ModifierState {
+	return im.mouse.Modifier(mod)
+}
+
+func (im *InputManager) MouseScroll() (float32, float32) {
+	return im.mouse.Scroll()
+}
+
+func (im *InputManager) MousePosition() (float32, float32) {
+	return im.mouse.Position()
 }

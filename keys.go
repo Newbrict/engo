@@ -4,100 +4,94 @@ import (
 	"sync"
 )
 
-const (
-	KeyStateUp = iota
-	KeyStateDown
-	KeyStateJustDown
-	KeyStateJustUp
-)
+//TODO: Need better names for this stuff mabye?
 
-// NewKeyManager creates a new KeyManager.
-func NewKeyManager() *KeyManager {
-	return &KeyManager{
-		mapper: make(map[Key]KeyState),
-	}
-}
+type KeyAction int
+
+const (
+	KeyUp       = KeyAction(0)
+	KeyDown     = KeyAction(1)
+	KeyJustDown = KeyAction(2)
+	KeyJustUp   = KeyAction(3)
+)
 
 // KeyManager tracks which keys are pressed and released at the current point of time.
 type KeyManager struct {
 	mapper map[Key]KeyState
-	mutex  sync.RWMutex
 }
 
 // Set is used for updating whether or not a key is held down, or not held down.
 func (km *KeyManager) Set(k Key, state bool) {
-	km.mutex.Lock()
-
 	ks := km.mapper[k]
 	ks.set(state)
 	km.mapper[k] = ks
-
-	km.mutex.Unlock()
 }
 
 // Get retrieves a keys state.
 func (km *KeyManager) Get(k Key) KeyState {
-	km.mutex.RLock()
-	defer km.mutex.RUnlock()
-
 	ks, ok := km.mapper[k]
 	if !ok {
-		return KeyState{false, false}
+		return KeyState{lastState: false, currentState: false}
 	}
 
 	return ks
 }
 
 func (km *KeyManager) update() {
-	km.mutex.Lock()
-
 	// Set all keys to their current states
 	for key, state := range km.mapper {
 		state.set(state.currentState)
 		km.mapper[key] = state
 	}
-
-	km.mutex.Unlock()
 }
 
 // KeyState is used for detecting the state of a key press.
 type KeyState struct {
 	lastState    bool
 	currentState bool
+
+	mutex sync.RWMutex
 }
 
 func (key *KeyState) set(state bool) {
+	key.mutex.Lock()
+
 	key.lastState = key.currentState
 	key.currentState = state
+
+	key.mutex.Unlock()
 }
 
 // State returns the raw state of a key.
-func (key *KeyState) State() int {
+func (key KeyState) State() KeyAction {
+	key.mutex.RLock()
+	defer key.mutex.RUnlock()
+
 	if !key.lastState && key.currentState {
-		return KeyStateJustDown
+		return KeyJustDown
 	} else if key.lastState && !key.currentState {
-		return KeyStateJustUp
+		return KeyJustUp
 	} else if key.lastState && key.currentState {
-		return KeyStateDown
+		return KeyDown
 	} else if !key.lastState && !key.currentState {
-		return KeyStateUp
+		return KeyUp
 	}
 
-	return KeyStateUp
+	return KeyUp
 }
 
 func (key KeyState) JustPressed() bool {
-	return key.State() == KeyStateJustDown
+	return key.State() == KeyJustDown
 }
 
 func (key KeyState) JustReleased() bool {
-	return key.State() == KeyStateJustUp
+	return key.State() == KeyJustUp
 }
 
 func (key KeyState) Up() bool {
-	return key.State() == KeyStateUp
+	return key.State() == KeyUp
 }
 
 func (key KeyState) Down() bool {
-	return key.State() == KeyStateDown
+	return key.State() == KeyDown
 }
